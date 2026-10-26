@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Little Brain — Learning Companion</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d30;--panel2:#1b2740;--ink:#f2f5ff;--muted:#aab6d0;--accent:#78e3c3;--accent2:#8ab4ff;--line:#2d3a55;--bad:#ff9b9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#182747 0,var(--bg) 55%);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:auto;padding:18px 14px 40px}.hero{display:flex;gap:13px;align-items:center;padding:8px 2px 18px}
+.logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:30px;background:linear-gradient(145deg,#254f69,#29345e);border:1px solid #46617d;box-shadow:0 8px 28px #0005}
+h1{font-size:25px;margin:0}.subtitle{color:var(--muted);font-size:13px;margin-top:3px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tab{flex:1;border:1px solid var(--line);border-radius:12px;background:#111a2b;color:var(--muted);padding:11px 8px;font-weight:700}.tab.active{background:var(--panel2);color:var(--accent);border-color:#4a827a}
+.panel{background:linear-gradient(160deg,#172138,#11192a);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 8px 28px #0002}
+h2{font-size:17px;margin:0 0 10px}p{margin:7px 0;color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}
+input,textarea,select{width:100%;background:#0c1424;color:var(--ink);border:1px solid #34425f;border-radius:11px;padding:12px;font:inherit;outline:none}textarea{min-height:75px;resize:vertical}input:focus,textarea:focus{border-color:var(--accent)}
+button{border:0;border-radius:11px;padding:11px 13px;background:var(--accent);color:#071a1a;font-weight:800;font:inherit;cursor:pointer}button.secondary{background:#273550;color:var(--ink);border:1px solid #405170}button.danger{background:#402631;color:#ffd7df;border:1px solid #754052}button:active{transform:scale(.99)}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.actions button{flex:1}
+.chatlog{display:flex;flex-direction:column;gap:9px;max-height:42vh;overflow:auto;padding:4px 1px 10px}.bubble{max-width:90%;padding:10px 12px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}.bot{align-self:flex-start;background:#202d46;border:1px solid #354563}.user{align-self:flex-end;background:#1c4b4b;border:1px solid #36736c}.small{font-size:12px;color:var(--muted)}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.stat{padding:10px;border-radius:12px;background:#0d1525;border:1px solid var(--line)}.stat strong{display:block;font-size:21px;color:var(--accent)}.stat span{font-size:11px;color:var(--muted)}
+.network{width:100%;height:170px;background:#0a1221;border-radius:12px;border:1px solid var(--line);display:block}.memory{display:flex;gap:8px;align-items:start;border-bottom:1px solid var(--line);padding:9px 0}.memory:last-child{border-bottom:0}.memory span{flex:1;overflow-wrap:anywhere}.tag{font-size:11px;border:1px solid #47617a;border-radius:99px;padding:2px 7px;color:var(--accent2)}
+.hidden{display:none!important}.note{border-left:3px solid var(--accent2);padding:8px 10px;background:#101b2e;border-radius:0 9px 9px 0;font-size:13px;color:var(--muted)}footer{text-align:center;color:#7f8ba5;font-size:12px;padding:10px}
+@media(min-width:650px){main{padding-top:28px}.chatlog{max-height:440px}}
+</style>
+</head>
+<body>
+<main>
+  <header class="hero"><div class="logo">🧠</div><div><h1>Little Brain</h1><div class="subtitle">Your tiny learning companion · prototype v0.1</div></div></header>
+  <nav class="tabs">
+    <button class="tab active" data-tab="chat">Companion</button>
+    <button class="tab" data-tab="learn">Teach it</button>
+    <button class="tab" data-tab="brain">Brain lab</button>
+  </nav>
+
+  <section id="chat" class="view">
+    <div class="panel">
+      <h2>💬 Talk to Little Brain</h2>
+      <div id="chatlog" class="chatlog" aria-live="polite"></div>
+      <form id="chatform">
+        <label for="message">Your message</label>
+        <div class="row"><input id="message" autocomplete="off" placeholder="Say something or ask what it learned…" required><button type="submit">Send</button></div>
+      </form>
+      <div class="actions"><button class="secondary" id="recallBtn">What do you remember?</button><button class="secondary" id="exportBtn">Export memory</button></div>
+    </div>
+    <div class="note">This first version has real saved memory and a small neural network that learns a simple pattern task. It is not yet a general-purpose language model, so its conversation is intentionally simple.</div>
+  </section>
+
+  <section id="learn" class="view hidden">
+    <div class="panel">
+      <h2>📚 Teach it a fact</h2>
+      <p>Give it something useful to remember. Example: “My favorite game is Minecraft.”</p>
+      <form id="memoryform">
+        <label for="fact">Fact to remember</label><textarea id="fact" placeholder="I like building Redstone computers." required maxlength="500"></textarea>
+        <button type="submit">Save memory</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>⚡ Train its neural network</h2>
+      <p>Teach it examples of a pattern. The network learns to classify short messages into one of two labels. Start with the sample set, then add your own examples.</p>
+      <label for="trainText">Example text</label><input id="trainText" placeholder="I really like this">
+      <label for="trainLabel">Correct label</label>
+      <select id="trainLabel"><option value="positive">positive</option><option value="negative">negative</option></select>
+      <div class="actions"><button id="trainBtn" type="button">Train on example</button><button class="secondary" id="sampleBtn" type="button">Add sample lessons</button></div>
+      <div id="trainStatus" class="small" style="margin-top:10px">Network ready for examples.</div>
+    </div>
+    <div class="panel">
+      <h2>🧪 Ask it to predict</h2>
+      <label for="predictText">Text to classify</label><input id="predictText" placeholder="This is awesome!">
+      <div class="actions"><button id="predictBtn" type="button">Make prediction</button></div>
+      <div id="prediction" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="brain" class="view hidden">
+    <div class="panel">
+      <h2>🕸️ Neural network</h2>
+      <p>The dots are neurons; the lines are learned connections. Brighter/thicker lines have larger weights. This tiny model uses word features and trains with gradient descent.</p>
+      <canvas id="network" class="network" width="700" height="170"></canvas>
+      <div class="statgrid">
+        <div class="stat"><strong id="epochs">0</strong><span>Training steps</span></div>
+        <div class="stat"><strong id="examples">0</strong><span>Examples learned</span></div>
+        <div class="stat"><strong id="memories">0</strong><span>Saved memories</span></div>
+      </div>
+      <div id="brainStatus" class="small">No training yet. Add sample lessons or teach an example.</div>
+      <div class="actions"><button class="secondary" id="retrainBtn">Train on all examples</button><button class="danger" id="resetBtn">Reset learned network</button></div>
+    </div>
+    <div class="panel">
+      <h2>🗃️ Saved memories</h2>
+      <div id="memoryList"></div>
+      <div class="actions"><button class="danger" id="clearMemBtn">Clear all memories</button><button class="secondary" id="clearExamplesBtn">Clear training examples</button></div>
+    </div>
+    <div class="note">Privacy: your memories and model are saved in this browser on this device. Export a backup before clearing browser data. The app does not send your memories to a server.</div>
+  </section>
+  <footer>Little Brain · built to learn in small steps</footer>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const STORE = "little-brain-v1";
+const vocab = ["i","you","love","like","great","good","awesome","happy","nice","fun","yes","enjoy","hate","bad","awful","sad","boring","no","terrible","dislike","not","really","this","it","is","very","am","the","game","building","cool","wow"];
+let state = load();
+function freshNet(){return {w1:Array.from({length:vocab.length},()=>Array.from({length:8},()=>Math.random()*0.3-0.15)),b1:Array(8).fill(0),w2:Array.from({length:8},()=>Math.random()*0.3-0.15),b2:0,steps:0};}
+function load(){try{const s=JSON.parse(localStorage.getItem(STORE));if(s&&s.net&&s.memories&&s.examples)return s;}catch(e){}return {memories:[],examples:[],net:freshNet(),chat:[],trained:0};}
+function save(){localStorage.setItem(STORE,JSON.stringify(state));renderStats();renderMemories();drawNet();}
+function words(text){const t=text.toLowerCase().replace(/[^a-z0-9\s']/g," ").split(/\s+/);return t.filter(Boolean);}
+function features(text){const ws=words(text);return vocab.map(v=>ws.includes(v)?1:0);}
+function sigmoid(x){return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x))));}
+function forward(x){const h=state.net.w1[0].map((_,j)=>sigmoid(state.net.b1[j]+x.reduce((s,v,i)=>s+v*state.net.w1[i][j],0)));const y=sigmoid(state.net.b2+h.reduce((s,v,j)=>s+v*state.net.w2[j],0));return {h,y};}
+function trainOne(text,label,lr=.25){const x=features(text);const target=label==="positive"?1:0;const {h,y}=forward(x);const d2=(y-target)*y*(1-y);for(let j=0;j<h.length;j++){const old=state.net.w2[j];state.net.w2[j]-=lr*d2*h[j];const d1=d2*old*h[j]*(1-h[j]);state.net.b1[j]-=lr*d1;for(let i=0;i<x.length;i++)state.net.w1[i][j]-=lr*d1*x[i];}state.net.b2-=lr*d2;state.net.steps++;state.trained++;return Math.abs(target-y);}
+function trainMany(n=30){if(!state.examples.length)return 0;let loss=0;for(let i=0;i<n;i++){const ex=state.examples[Math.floor(Math.random()*state.examples.length)];loss+=trainOne(ex.text,ex.label,.18);}return loss/n;}
+function predict(text){return forward(features(text)).y;}
+function addChat(text,who){state.chat.push({text,who});if(state.chat.length>60)state.chat=state.chat.slice(-60);renderChat();}
+function botReply(text){
+ const lower=text.toLowerCase();
+ if(/what do you remember|remember anything|your memories|what have i taught/.test(lower)) return memorySummary();
+ if(/hello|^hi\b|hey\b|what's up/.test(lower)) return "Hey! I'm Little Brain. I'm a tiny prototype, but you can teach me facts and train my pattern-learning network.";
+ if(/who are you|your name/.test(lower)) return "I'm Little Brain, your phone-based learning companion. My memory and tiny neural network are saved on this device.";
+ if(/how are you/.test(lower)) return "I'm running and ready to learn. I don't have feelings like a person, but I'm happy to help with experiments!";
+ if(/neural network|how do you learn|training/.test(lower)) return "My small neural network learns to classify text as positive or negative from examples you label. Go to Teach it to train me, then Brain lab to see my connections.";
+ if(/favorite|favourite/.test(lower)) {const m=state.memories.find(m=>/favorite|favourite/i.test(m.text));if(m)return "I remember this related fact: "+m.text;}
+ const exact=state.memories.find(m=>lower.includes(m.text.toLowerCase())||m.text.toLowerCase().includes(lower));
+ if(exact)return "I found a saved memory: "+exact.text;
+ if(state.examples.length>=2){const p=predict(text);return "My little neural network guesses this sounds "+(p>=.5?"positive":"negative")+" ("+Math.round((p>=.5?p:1-p)*100)+"% confidence). That's only a tiny pattern model, so it can be wrong. You can correct me by adding a labeled example in Teach it.";}
+ return "I don't know enough to answer that yet. You can teach me a fact in the Teach it tab, or give me labeled examples so my neural network can start learning patterns.";
+}
+function memorySummary(){if(!state.memories.length)return "I don't have any saved facts yet. Visit Teach it and give me a fact to remember.";return "Here's what I remember:\n"+state.memories.slice(-12).map((m,i)=>(i+1)+". "+m.text).join("\n");}
+function renderChat(){const log=$("chatlog");log.innerHTML="";if(!state.chat.length){const d=document.createElement("div");d.className="bubble bot";d.textContent="Hello, engineer! I'm Little Brain. Teach me something, or train my tiny neural network.";log.append(d);}state.chat.forEach(m=>{const d=document.createElement("div");d.className="bubble "+(m.who==="user"?"user":"bot");d.textContent=m.text;log.append(d);});log.scrollTop=log.scrollHeight;}
+function renderStats(){$("epochs").textContent=state.net.steps;$("examples").textContent=state.examples.length;$("memories").textContent=state.memories.length;$("brainStatus").textContent=state.examples.length?`Trained on ${state.examples.length} labeled examples. Network weights update with each training step.`:"No training examples yet. Add sample lessons or teach an example.";}
+function renderMemories(){const el=$("memoryList");el.innerHTML="";if(!state.memories.length){el.textContent="No saved memories yet.";el.className="small";return;}el.className="";state.memories.slice().reverse().forEach(m=>{const row=document.createElement("div");row.className="memory";const span=document.createElement("span");span.textContent=m.text;const del=document.createElement("button");del.className="secondary";del.textContent="Forget";del.style.flex="0 0 auto";del.onclick=()=>{state.memories=state.memories.filter(x=>x.id!==m.id);save();};row.append(span,del);el.append(row);});}
+function drawNet(){const c=$("network"),ctx=c.getContext("2d"),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle="#0a1221";ctx.fillRect(0,0,w,h);const left=45,mid=350,right=655;const inp=[0,1,2,3,4,5,6,7],hid=Array.from({length:8},(_,i)=>i),out=[0];const ys=arr=>arr.map((_,i)=>h*(i+1)/(arr.length+1));const yi=ys(inp),yh=ys(hid),yo=[h/2];for(let i=0;i<8;i++)for(let j=0;j<8;j++){const v=state.net.w1[(i*4)%vocab.length][j];ctx.beginPath();ctx.moveTo(left,yi[i]);ctx.lineTo(mid,yh[j]);ctx.strokeStyle=v>=0?`rgba(120,227,195,${Math.min(.8,.15+Math.abs(v)*2)})`:`rgba(255,155,155,${Math.min(.8,.15+Math.abs(v)*2)})`;ctx.lineWidth=Math.min(3,.5+Math.abs(v)*3);ctx.stroke();}for(let j=0;j<8;j++){const v=state.net.w2[j];ctx.beginPath();ctx.moveTo(mid,yh[j]);ctx.lineTo(right,yo[0]);ctx.strokeStyle=v>=0?`rgba(120,227,195,${Math.min(.9,.2+Math.abs(v)*2)})`:`rgba(255,155,155,${Math.min(.9,.2+Math.abs(v)*2)})`;ctx.lineWidth=Math.min(4,.7+Math.abs(v)*4);ctx.stroke();}function node(x,y,r,fill){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle="#9ab3d5";ctx.lineWidth=1.5;ctx.stroke();}yi.forEach(y=>node(left,y,6,"#314a70"));yh.forEach(y=>node(mid,y,8,"#2f8c7b"));node(right,yo[0],10,"#8ab4ff");ctx.fillStyle="#9aaaca";ctx.font="14px system-ui";ctx.fillText("Input features",12,18);ctx.fillText("Hidden layer",295,18);ctx.fillText("Prediction",610,18);}
+function addMemory(text){state.memories.push({id:Date.now()+Math.random(),text:text.trim(),created:Date.now()});save();}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("hidden",v.id!==b.dataset.tab));}));
+$("chatform").addEventListener("submit",e=>{e.preventDefault();const t=$("message").value.trim();if(!t)return;addChat(t,"user");$("message").value="";const reply=botReply(t);addChat(reply,"bot");});
+$("recallBtn").onclick=()=>addChat(memorySummary(),"bot");
+$("memoryform").addEventListener("submit",e=>{e.preventDefault();const t=$("fact").value.trim();if(!t)return;addMemory(t);$("fact").value="";$("trainStatus").textContent="Saved that memory on this device.";});
+$("trainBtn").onclick=()=>{const text=$("trainText").value.trim(),label=$("trainLabel").value;if(!text){$("trainStatus").textContent="Type an example first.";return;}state.examples.push({text,label});const loss=trainMany(60);save();$("trainStatus").textContent=`Added a ${label} example and trained on it. Approximate training loss: ${loss.toFixed(3)}. Add varied examples for better learning.`;$("trainText").value="";};
+$("sampleBtn").onclick=()=>{const samples=[["I love this game","positive"],["That was awesome","positive"],["I feel happy","positive"],["This is really good","positive"],["That was fun and cool","positive"],["I hate this","negative"],["This is awful","negative"],["I feel sad","negative"],["That game is boring","negative"],["This is really bad","negative"]];for(const [text,label] of samples)state.examples.push({text,label});trainMany(500);save();$("trainStatus").textContent="Added 10 sample lessons and trained the network. Now try your own examples and test new text.";};
+$("predictBtn").onclick=()=>{const t=$("predictText").value.trim();if(!t){$("prediction").textContent="Type some text first.";return;}if(state.examples.length<2){$("prediction").textContent="Teach at least two examples first.";return;}const p=predict(t),label=p>=.5?"positive":"negative",conf=Math.round((p>=.5?p:1-p)*100);$("prediction").innerHTML="";const strong=document.createElement("strong");strong.textContent=`Prediction: ${label} · ${conf}% confidence`;const ptag=document.createElement("p");ptag.textContent="This is the network's estimate, not a guaranteed answer.";const correct=document.createElement("div");correct.className="actions";const pos=document.createElement("button");pos.textContent="Correct: positive";pos.onclick=()=>correctPrediction(t,"positive");const neg=document.createElement("button");neg.className="secondary";neg.textContent="Correct: negative";neg.onclick=()=>correctPrediction(t,"negative");correct.append(pos,neg);$("prediction").append(strong,ptag,correct);};
+function correctPrediction(text,label){state.examples.push({text,label});trainMany(80);save();$("prediction").textContent=`Thanks — I added your correction as a ${label} example and trained again.`;}
+$("retrainBtn").onclick=()=>{if(!state.examples.length){$("brainStatus").textContent="No examples to train on yet.";return;}const loss=trainMany(500);save();$("brainStatus").textContent=`Training complete. Average sampled loss: ${loss.toFixed(3)}. Try testing new text.`;};
+$("resetBtn").onclick=()=>{if(confirm("Reset the neural network weights and training counter? Your saved memories and examples will remain.")){state.net=freshNet();state.trained=0;save();}};
+$("clearMemBtn").onclick=()=>{if(confirm("Clear every saved memory? This cannot be undone unless you exported a backup.")){state.memories=[];save();}};
+$("clearExamplesBtn").onclick=()=>{if(confirm("Clear all labeled training examples?")){state.examples=[];state.net=freshNet();state.trained=0;save();}};
+$("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="little-brain-backup.json";a.click();URL.revokeObjectURL(url);};
+state.chat.forEach(()=>{});renderChat();renderStats();renderMemories();drawNet();save();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Bartholomew \u2014 Learning Brain",
+  "short_name": "Bartholomew",
+  "description": "A tiny learning companion with a neural-network playground and local memory.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#101827",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
