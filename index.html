@@ -63,6 +63,17 @@ button{border:0;border-radius:11px;padding:11px 13px;background:var(--accent);co
       <select id="trainLabel"><option value="positive">positive</option><option value="negative">negative</option></select>
       <div class="actions"><button id="trainBtn" type="button">Train on example</button><button class="secondary" id="sampleBtn" type="button">Add sample lessons</button></div>
       <div id="trainStatus" class="small" style="margin-top:10px">Network ready for examples.</div>
+      <div class="panel" style="margin-top:14px">
+  <h2>🤖 Automatic Learning</h2>
+  <p>Let Bartholomew train continuously on his saved lessons.</p>
+  <div class="actions">
+    <button id="autoStart">Start learning</button>
+    <button class="secondary" id="autoPause">Pause</button>
+  </div>
+  <div id="autoStatus" class="small" style="margin-top:10px">
+    Automatic learning is idle.
+  </div>
+</div>
     </div>
     <div class="panel">
       <h2>🧪 Ask it to predict</h2>
@@ -109,6 +120,59 @@ function sigmoid(x){return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x))));}
 function forward(x){const h=state.net.w1[0].map((_,j)=>sigmoid(state.net.b1[j]+x.reduce((s,v,i)=>s+v*state.net.w1[i][j],0)));const y=sigmoid(state.net.b2+h.reduce((s,v,j)=>s+v*state.net.w2[j],0));return {h,y};}
 function trainOne(text,label,lr=.25){const x=features(text);const target=label==="positive"?1:0;const {h,y}=forward(x);const d2=(y-target)*y*(1-y);for(let j=0;j<h.length;j++){const old=state.net.w2[j];state.net.w2[j]-=lr*d2*h[j];const d1=d2*old*h[j]*(1-h[j]);state.net.b1[j]-=lr*d1;for(let i=0;i<x.length;i++)state.net.w1[i][j]-=lr*d1*x[i];}state.net.b2-=lr*d2;state.net.steps++;state.trained++;return Math.abs(target-y);}
 function trainMany(n=30){if(!state.examples.length)return 0;let loss=0;for(let i=0;i<n;i++){const ex=state.examples[Math.floor(Math.random()*state.examples.length)];loss+=trainOne(ex.text,ex.label,.18);}return loss/n;}
+  // BARTHOLOMEW 2.0 - AUTOMATIC LEARNING ENGINE
+state.auto = state.auto || {
+  running: false,
+  totalSteps: 0
+};
+
+let autoTimer = null;
+
+function autoBatch() {
+  if (!state.auto.running) return;
+
+  if (!state.examples.length) {
+    pauseAuto();
+    $("autoStatus").textContent =
+      "No lessons available. Add training examples first.";
+    return;
+  }
+
+  // Train on 25 randomly selected lessons.
+  trainMany(25);
+  state.auto.totalSteps += 25;
+
+  // Save the brain and automatic learning progress.
+  save();
+
+  $("autoStatus").textContent =
+    "Learning automatically... " +
+    state.auto.totalSteps + " training steps completed.";
+
+  autoTimer = setTimeout(autoBatch, 100);
+}
+
+function startAuto() {
+  if (state.auto.running) return;
+
+  state.auto.running = true;
+  $("autoStatus").textContent = "Starting automatic learning...";
+  autoBatch();
+}
+
+function pauseAuto() {
+  state.auto.running = false;
+  clearTimeout(autoTimer);
+  autoTimer = null;
+
+  save();
+
+  $("autoStatus").textContent =
+    "Learning paused. Progress saved.";
+}
+
+$("autoStart").onclick = startAuto;
+$("autoPause").onclick = pauseAuto;
 function predict(text){return forward(features(text)).y;}
 function addChat(text,who){state.chat.push({text,who});if(state.chat.length>60)state.chat=state.chat.slice(-60);renderChat();}
 function botReply(text){
